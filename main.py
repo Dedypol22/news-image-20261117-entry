@@ -59,6 +59,14 @@ def main() -> int:
         fh.write(data)
 
     digest = hashlib.sha256(data).hexdigest()
+
+    # Read the written file back and prove it is byte-identical to the
+    # validated asset, so a short or corrupted write can never slip through.
+    with open(out_path, "rb") as fh:
+        written = fh.read()
+    if hashlib.sha256(written).hexdigest() != digest:
+        raise ValueError("written file does not match the validated asset")
+
     width, height = png_dimensions(data)
     print(f"wrote {out_path}: {len(data)} bytes, {width}x{height}, sha256 {digest}")
     return 0
